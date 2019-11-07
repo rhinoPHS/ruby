@@ -1,29 +1,37 @@
-require 'erb'
+require 'erb' # import같은 거 erb(embeded ruby)는 문자열 안에 루비 코드 넣는 것
 
+#클래스
 class Context
+  #프로퍼티 접근자제어 외부에서 읽을 수 있게
   attr_reader :properties,
     :class_name,
     :headers_str,
     :enums_str
-
+ 
+ # 초기메소드
   def initialize
+    # 배열 프로퍼티 properties 초기화
     @properties = []
   end
-
+  # 메소드(string인자값)
   def enums(str)
+    # 인자값 strt을 입력받아서 enums_str String 프로퍼티에 넣음
     @enums_str = str
   end
-
+  
   def headers(str)
     @headers_str = str
   end
 
+  # model메소드(model_class_name 문자열 인자값, block 블록 인자값)
   def model(model_class_name, &block)
     @class_name = model_class_name
+    #
     instance_eval(&block)
   end
-
+  # 메소드(string 인자, 해쉬인자)
   def property(name, args = {})
+    # properties에 name:name해쉬와 args에 있는 해쉬를 하나씩 머지해서 추가
     @properties << args.merge(name: name)
   end
 end
@@ -53,17 +61,20 @@ class ModelDefinition
   attr_reader :context
 
   def property_definition(readonly, args)
+      #배열
     parts = ["@property"]
 
     readonly_string = readonly ? ", readonly" : ""
 
     property_options = ["nonatomic"]
-
+    
+    # 해쉬 찾는 것 args[type] 같은
     if args[:type].include?("*")
       property_options << (args[:type] =~ /^NS/ ? "copy" : "strong")
     end
 
     if readonly
+        # 배열에 하나 추가
       property_options << "readonly"
     end
 
@@ -100,6 +111,8 @@ class ModelDefinition
     end
   end
 
+  # <%- -%> 루비 코드 자체가 가운데 들어감
+  # <%= %> 루비 코드 자체가 가운데 들어가는데 그 결과값
   def header_template
     template = <<-EOS
 #import <Foundation/Foundation.h>
